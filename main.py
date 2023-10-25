@@ -1,9 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from aligator_q_learning import step, Environment, GAME_MATRIX
+from q_learning import step, Environment, GAME_MATRIX
 import os
 
 SHOW_EVERY = 500
+NUM_EPISODES = 10000
+MAX_FRAMES = 100
 
 if not os.path.exists("qtables"):
     os.makedirs("qtables")
@@ -65,12 +67,10 @@ def observe(env):
 
 
 if __name__ == '__main__':
-    num_episodes = 10000
-    max_frames = 100
     env = Environment(GAME_MATRIX, epsilon=1, gamma=0.99, lr=0.1)
 
     aggr_episode_rewards, states = train(
-        env, num_episodes=num_episodes, max_frames=max_frames)
+        env, num_episodes=NUM_EPISODES, max_frames=MAX_FRAMES)
     print("Train done!")
 
     # Get the positions array

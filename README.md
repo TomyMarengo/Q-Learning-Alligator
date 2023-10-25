@@ -9,7 +9,7 @@ To run the game, follow these steps:
 1. Clone the repository to your local machine.
 2. Navigate to the project folder.
 3. Install the required dependencies using `pip install -r requirements.txt`.
-4. Run the game using `python alligator_main.py`.
+4. Run the game using `python main.py`.
 
 ## Parameters
 
