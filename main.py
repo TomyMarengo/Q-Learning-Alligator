@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from q_learning import step, Environment, GAME_MATRIX
 import os
+import cv2
 
 SHOW_EVERY = 500
 NUM_EPISODES = 10000
@@ -15,13 +16,16 @@ if not os.path.exists("gif"):
     os.makedirs("gif")
 if not os.path.exists("frames"):
     os.makedirs("frames")
+if not os.path.exists("plots"):
+    os.makedirs("plots")
+
 
 def train(env, num_episodes, max_frames):
     aggr_episode_rewards = {'ep': [], 'avg': [], 'min': [], 'max': []}
     rewards_all_episodes = []
     states = []
 
-    for i in range(num_episodes):
+    for episode in range(num_episodes):
         env.reset()
         env.epsilon = max(env.eps_end, env.epsilon*env.eps_dec)
         # data for plotting
@@ -30,20 +34,31 @@ def train(env, num_episodes, max_frames):
         states.append((env.initial_position))
 
         while True:
+            if episode % SHOW_EVERY == 0:
+                game_image = env.visualize()
+                cv2.imshow("game", np.array(game_image))
+                if cv2.waitKey(10) & 0xFF == ord('q'):
+                    continue
+
             state, action, reward, Q, done = step(env)
 
             # data for plotting
             rewards_current_episode += reward
             states.append((state))
             if done or env.current_frame >= max_frames:
+                if episode % SHOW_EVERY == 0:
+                    game_image = env.visualize()
+                    cv2.imshow("game", np.array(game_image))
+                    if cv2.waitKey(500) & 0xFF == ord('q'):
+                        break
                 break
 
         rewards_all_episodes.append(rewards_current_episode)
-        if i % SHOW_EVERY == 0:
-            np.save(f"qtables/qtable_{i}", Q)
+        if episode % SHOW_EVERY == 0:
+            np.save(f"qtables/qtable_{episode}", Q)
             average_reward = sum(
                 rewards_all_episodes[-SHOW_EVERY:])/len(rewards_all_episodes[-SHOW_EVERY:])
-            aggr_episode_rewards['ep'].append(i)
+            aggr_episode_rewards['ep'].append(episode)
             aggr_episode_rewards['avg'].append(average_reward)
             aggr_episode_rewards['min'].append(
                 min(rewards_all_episodes[-SHOW_EVERY:]))
@@ -55,13 +70,16 @@ def train(env, num_episodes, max_frames):
 
 def observe(env):
     env.reset()
+    game_image = env.visualize()
+    game_image.save(f"frames/frame_{env.current_frame}.png")
     while True:
-        env.visualize()
+
         state, action, reward, Q, done = step(env)
         # create a copy of the game matrix with all positions as 0
         if done:
-            print("DONE IN: " + str(env.current_frame - 1) + " STEPS" + "\n")
-            env.visualize()
+            print("Observe done in " + str(env.current_frame - 1) + " steps!")
+            game_image = env.visualize()
+            game_image.save(f"frames/frame_{env.current_frame}.png")
             break
     env.render()
 
@@ -90,7 +108,7 @@ if __name__ == '__main__':
     plt.ylim(-0.5, 3.5)
     plt.gca().invert_yaxis()
     # Show the plot
-    plt.show()
+    plt.savefig('plots/heatmap_positions.png')
     plt.close()
 
     # Plot the rewards
@@ -102,8 +120,7 @@ if __name__ == '__main__':
              aggr_episode_rewards['max'], label="max")
     plt.legend(loc=4)
     plt.ylim(-100, 100)
-    plt.show()
+    plt.savefig('plots/rewards_vs_episodes.png')
     plt.close()
 
     observe(env)
-    print("Observe done!")

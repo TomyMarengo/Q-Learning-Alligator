@@ -74,14 +74,14 @@ class Environment:
                 elif GAME_MATRIX[y][x] == 0:
                     game_image.paste(EMOJI_GRASS, (x*50, y*50), EMOJI_GRASS)
         # Save the image as a PNG file
-        game_image.save(f"frames/frame_{self.current_frame}.png")
+        return game_image
 
     def render(self):
         frame_paths = [
             f"frames/frame_{i}.png" for i in range(1, self.current_frame + 1)]
         frames = [Image.open(frame_path) for frame_path in frame_paths]
         frames[0].save('gif/game_animation.gif', save_all=True,
-                       append_images=frames[1:], optimize=False, duration=500, loop=0)
+                    append_images=frames[1:], optimize=False, duration=500, loop=0)
 
 
 def take_action(env, action):
@@ -136,7 +136,7 @@ def step(env):
     if not is_done(next_state):
         next_possible_act = possible_actions(next_state)
         q_values = Q[next_state['y'], next_state['x'],
-                     [a.value for a in next_possible_act]]
+                    [a.value for a in next_possible_act]]
         next_max_q_value_index = np.argmax(q_values)
         next_action = next_possible_act[next_max_q_value_index]
         old = (1 - env.lr) * Q[state['y'], state['x'], action.value]
